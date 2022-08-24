@@ -2,4 +2,4 @@
   #define TJPGD_LOAD_FFS
 #endif
 
-#define TJPGD_LOAD_SD_LIBRARY
+//#define TJPGD_LOAD_SD_LIBRARY

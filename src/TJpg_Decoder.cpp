@@ -10,7 +10,10 @@ https://github.com/Bodmer/TJpg_Decoder
 #include "TJpg_Decoder.h"
 
 // Create a class instance to be used by the sketch (defined as extern in header)
-TJpg_Decoder TJpgDec;
+// TJpg_Decoder TJpgDec;
+
+// singleton without wasting space as global variable
+TJpg_Decoder *TJpg_Decoder::thisPtr = nullptr;
 
 /***************************************************************************************
 ** Function name:           TJpg_Decoder
@@ -26,6 +29,7 @@ TJpg_Decoder::TJpg_Decoder(){
 ** Description:             Destructor
 ***************************************************************************************/
 TJpg_Decoder::~TJpg_Decoder(){
+    thisPtr = nullptr;
   // Bye
 }
 
@@ -77,7 +81,6 @@ void TJpg_Decoder::setCallback(SketchCallback sketchCallback)
 ***************************************************************************************/
 unsigned int TJpg_Decoder::jd_input(JDEC* jdec, uint8_t* buf, unsigned int len)
 {
-  TJpg_Decoder *thisPtr = TJpgDec.thisPtr;
   jdec = jdec; // Supress warning
 
   // Handle an array input
@@ -88,7 +91,7 @@ unsigned int TJpg_Decoder::jd_input(JDEC* jdec, uint8_t* buf, unsigned int len)
     }
 
     // If buf is valid then copy len bytes to buffer
-    if (buf) memcpy_P(buf, (const uint8_t *)(thisPtr->array_data + thisPtr->array_index), len);
+    if (buf) memcpy(buf, (const uint8_t *)(thisPtr->array_data + thisPtr->array_index), len);
 
     // Move pointer
     thisPtr->array_index += len;
@@ -141,8 +144,6 @@ unsigned int TJpg_Decoder::jd_input(JDEC* jdec, uint8_t* buf, unsigned int len)
 int TJpg_Decoder::jd_output(JDEC* jdec, void* bitmap, JRECT* jrect)
 {
   // This is a static function so create a pointer to access other members of the class
-  TJpg_Decoder *thisPtr = TJpgDec.thisPtr;
-
   jdec = jdec; // Supress warning as ID is not used
 
   // Retrieve rendering parameters and add any offset
@@ -299,9 +300,6 @@ JRESULT TJpg_Decoder::drawFsJpg(int32_t x, int32_t y, fs::File inFile) {
     jresult = jd_decomp(&jdec, jd_output, jpgScale);
   }
 
-  // Close file
-  if (jpgFile) jpgFile.close();
-
   return jresult;
 
 }
@@ -358,9 +356,6 @@ JRESULT TJpg_Decoder::getFsJpgSize(uint16_t *w, uint16_t *h, fs::File inFile) {
     *w = jdec.width;
     *h = jdec.height;
   }
-
-  // Close file
-  if (jpgFile) jpgFile.close();
 
   return jresult;
 }
@@ -426,9 +421,6 @@ JRESULT TJpg_Decoder::drawSdJpg(int32_t x, int32_t y, File inFile) {
     jresult = jd_decomp(&jdec, jd_output, jpgScale);
   }
 
-  // Close file
-  if (jpgSdFile) jpgSdFile.close();
-
   return jresult;
 
 }
@@ -487,9 +479,6 @@ JRESULT TJpg_Decoder::getSdJpgSize(uint16_t *w, uint16_t *h, File inFile) {
     *w = jdec.width;
     *h = jdec.height;
   }
-
-  // Close file
-  if (jpgSdFile) jpgSdFile.close();
 
   return jresult;
 }

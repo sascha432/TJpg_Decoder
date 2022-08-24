@@ -24,6 +24,9 @@ https://github.com/Bodmer/TJpg_Decoder
     #ifdef ESP32
        #include "SPIFFS.h" // ESP32 only
     #endif
+    #if ESP8266
+        #define SPIFFS LittleFS
+    #endif
     #define TJPGD_LOAD_FFS
   #elif defined (ARDUINO_ARCH_RP2040)
     #include <FS.h>
@@ -65,7 +68,7 @@ public:
   static int jd_output(JDEC* jdec, void* bitmap, JRECT* jrect);
   static unsigned int jd_input(JDEC* jdec, uint8_t* buf, unsigned int len);
 
-  void setJpgScale(uint8_t scale);
+    void setJpgScale(uint8_t scale);
   void setCallback(SketchCallback sketchCallback);
 
 
@@ -120,9 +123,9 @@ public:
 
   SketchCallback tft_output = nullptr;
 
-  TJpg_Decoder *thisPtr = nullptr;
+  static TJpg_Decoder *thisPtr;
 };
 
-extern TJpg_Decoder TJpgDec;
+// extern TJpg_Decoder TJpgDec;
 
 #endif // TJpg_Decoder_H
