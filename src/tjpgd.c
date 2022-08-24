@@ -753,7 +753,7 @@ static JRESULT mcu_load (
 					if (d < 0) return (JRESULT)(0 - d);	/* Err: input device */
 					bc = 1 << (bc - 1);				/* MSB position */
 					if (!(d & bc)) d -= (bc << 1) - 1;	/* Restore negative value if needed */
-					i = Zig[z];						/* Get raster-order index */
+					i = Zig[z];			/* Get raster-order index */
 					tmp[i] = d * dqf[i] >> 8;		/* De-quantize, apply scale factor of Arai algorithm and descale 8 bits */
 				}
 			} while (++z < 64);		/* Next AC element */
@@ -937,6 +937,7 @@ static JRESULT mcu_output (
 		uint16_t w, *d = (uint16_t*)s;
 		unsigned int n = rx * ry;
 
+#if TJPGD_SWAP_SUPPORT
     if (jd->swap)
     {
       do {
@@ -947,6 +948,7 @@ static JRESULT mcu_output (
       }   while (--n);
     }
     else
+#endif
     {
       do {
         w = ( *s++ & 0xF8) << 8;  // RRRRR-----------
@@ -958,7 +960,7 @@ static JRESULT mcu_output (
 	}
 
 	/* Output the rectangular */
-	return outfunc(jd, jd->workbuf, &rect) ? JDR_OK : JDR_INTR; 
+	return outfunc(jd, jd->workbuf, &rect) ? JDR_OK : JDR_INTR;
 }
 
 
@@ -985,13 +987,17 @@ JRESULT jd_prepare (
 	size_t len;
 	JRESULT rc;
 
+#if TJPGD_SWAP_SUPPORT
   uint8_t tmp = jd->swap; // Copy the swap flag
+#endif
 	memset(jd, 0, sizeof (JDEC));	/* Clear decompression object (this might be a problem if machine's null pointer is not all bits zero) */
 	jd->pool = pool;		/* Work memroy */
 	jd->sz_pool = sz_pool;	/* Size of given work memory */
 	jd->infunc = infunc;	/* Stream input function */
 	jd->device = dev;		/* I/O device identifier */
+#if TJPGD_SWAP_SUPPORT
   jd->swap = tmp; // Restore the swap flag
+#endif
 
 	jd->inbuf = seg = alloc_pool(jd, JD_SZBUF);		/* Allocate stream input buffer */
 	if (!seg) return JDR_MEM1;
